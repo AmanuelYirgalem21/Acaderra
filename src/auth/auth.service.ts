@@ -1,9 +1,10 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { RegisterDto } from './dto/register.dto';
 import { UserRole } from '../../generated/prisma/enums';
+import { LoginDto } from './dto/login.dto';
 import * as bcrypt from "bcrypt";
 
 
@@ -57,13 +58,63 @@ export class AuthService {
     });
 
     // 4. Generate token
-    const accessToken = await this.jwtService.signAsync({ id: user.id,});
+    const accessToken = await this.jwtService.signAsync({ id: user.id, role: user.role, });
 
     // 5. Consistent response
     return {
       message: 'User registered successfully',
       data: {
         user,
+        accessToken,
+      },
+    };
+  }
+
+
+
+
+
+
+
+
+   async login(dto: LoginDto) {
+    const { email, password } = dto;
+
+    //  Find user by email
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        passwordHash: true,
+        createdAt: true,
+      },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    // Generate JWT token
+    const accessToken = await this.jwtService.signAsync({ id: user.id, role: user.role, });
+
+
+    // Remove passwordHash from response
+    const { passwordHash, ...userData } = user;
+
+    // Return consistent response
+    return {
+      message: 'Login successful',
+      data: {
+        user: userData,
         accessToken,
       },
     };
