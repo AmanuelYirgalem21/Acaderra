@@ -2,9 +2,12 @@ import { Module } from '@nestjs/common';
 import { PrismaModule } from './prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
+import { PassportModule } from '@nestjs/passport';
+import { JwtStrategy } from './common/strategies/jwt.strategy';
 
 @Module({
-  imports: [    
+  imports: [
+    PassportModule,   
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: `.env.${process.env.NODE_ENV || 'development'}`,
@@ -13,6 +16,6 @@ import { AuthModule } from './auth/auth.module';
     AuthModule, 
   ],
   controllers: [],
-  providers: [],
+  providers: [JwtStrategy],
 })
 export class AppModule {}

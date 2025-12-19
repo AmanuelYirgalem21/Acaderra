@@ -120,4 +120,28 @@ export class AuthService {
     };
   }
 
+
+
+
+
+
+ async getMe(userId: string) {
+  const user = await this.prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      createdAt: true,
+    },
+  });
+
+  return {
+    message: 'Current user fetched successfully',
+    data: user,
+  };
+}
+
+
 }
