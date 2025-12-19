@@ -10,7 +10,7 @@ import { AuthModule } from './auth/auth.module';
       envFilePath: `.env.${process.env.NODE_ENV || 'development'}`,
     }),
     PrismaModule,
-    AuthModule
+    AuthModule, 
   ],
   controllers: [],
   providers: [],
